@@ -50,12 +50,10 @@
     
     @try {
         
-        NSString *viewControllerName;
-        NSString *storyboardName;
-        NSString *uri;
-        NSString *message;
-        NSString *firstParam;
-        
+        NSString *viewControllerName = nil;
+        NSString *storyboardName = nil;
+        NSString *uri = nil;
+        NSString *poi = nil;
         NSMutableDictionary* config = [command.arguments objectAtIndex:0];
         
         if ([config isKindOfClass:[NSMutableDictionary class]]) {
@@ -63,60 +61,24 @@
             viewControllerName = [config objectForKey:@"viewControllerName"];
             storyboardName = [config objectForKey:@"storyboardName"];
             uri = [config objectForKey:@"uri"];
+            poi = [config objectForKey:@"poi"];
             
-        } else if ([config isKindOfClass:[NSString class]]) {
-            
-            if ([command.arguments count] == 1) {
-                
-                firstParam = [command argumentAtIndex: 0];
-                
-                if ([self isValidURI: firstParam]) {
-                    // Open app with valid uri name
-                    [self openAPP:firstParam withCommand: command];
-                    
-                } else if ([firstParam containsString:@"Storyboard"]) {
-                    // Init viewController from Storyboard with initial view Controller or user defined viewControllerName
-                    [self instantiateViewController:nil fromStoryboard:firstParam];
-                    
-                } else if ([firstParam containsString:@"Controller"]) {
-                    // Init viewController with or without xib
-                    [self instantiateViewController:firstParam];
-                    
-                } else {
-                    message = [[NSString alloc] initWithFormat:@"%@ invalid. Must contain a Storyboard / Controller / URI valid in name", firstParam];
-                    @throw [[NSException alloc] initWithName:@"IoException" reason:message userInfo:nil];
-                }
-                
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-                return;
-                
-            }else if ([command.arguments count] == 2) {
-                
-                // first param is Storyboard
-                storyboardName = [command argumentAtIndex: 0];
-                
-                // second param is ViewController and/or storyboardId
-                viewControllerName = [command argumentAtIndex: 1];
-                
-            }else{
-                message = [[NSString alloc] initWithFormat:@"An UIViewController name or Storyboard name or URI valid name is required at least. Please, pass in the first param in JS, like this: 'NativeView.show('MyViewController') or NativeView.show('MyStoryboard') or NativeView.show('MyStoryboard', 'MyViewController') or NativeView.show('instagram://')"];
-                @throw [[NSException alloc] initWithName:@"NotFoundException" reason:message userInfo:nil];
-            }
 
         }else{
             @throw [[NSException alloc] initWithName:@"ParamsTypeException" reason:@"The params of show() method needs be a string or a json" userInfo:nil];
         }
-        
         if ([self isValidURI: uri]) {
             // Open app with valid uri name
             [self openAPP:uri withCommand: command];
             
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        } else if (viewControllerName != nil || storyboardName != nil) {
+        } else if (viewControllerName != nil && storyboardName != nil) {
             // Init viewController from Storyboard with initial view Controlleror or user defined viewControllerName
-            [self instantiateViewController:viewControllerName fromStoryboard:storyboardName];
+            [self instantiateViewController:viewControllerName fromStoryboard:storyboardName poi:poi];
             
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        }else if(viewControllerName != nil){
+            [self instantiateViewController:viewControllerName poi:poi];
         }
         
     } @catch (NSException *e) {
@@ -238,7 +200,7 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId ];
 }
 
-- (void) instantiateViewController:(NSString *)viewControllerName {
+- (void) instantiateViewController:(NSString *)viewControllerName poi:(NSString *)poi {
     
     NSString *message;
     
@@ -283,6 +245,19 @@
             }
         }
         
+        if(destinyViewController != nil && poi != nil)
+        {
+
+            @try {
+                
+                [destinyViewController performSelector:NSSelectorFromString(@"selectedPoIString:") withObject:poi];
+            } @catch (NSException *e) {
+                message = [[NSString alloc] initWithFormat:@"selectedPoI not avalable"];
+                NSString *detailMessage = [[NSString alloc] initWithFormat:@"%@ \nDetail: %@", message, e.reason];
+                @throw [[NSException alloc] initWithName:@"NotFoundException" reason:detailMessage userInfo:nil];
+            }
+        }
+        
         // Call destinyViewController from current viewController
         if (self.viewController.navigationController) {
             [self.viewController.navigationController pushViewController:destinyViewController animated:YES];
@@ -297,7 +272,7 @@
     }
 }
 
-- (void) instantiateViewController:(NSString *)viewControllerName fromStoryboard:(NSString *)storyboardName {
+- (void) instantiateViewController:(NSString *)viewControllerName fromStoryboard:(NSString *)storyboardName poi:(NSString *)poi {
     
     NSString *message;
     
@@ -331,6 +306,17 @@
                     destinyViewController = [storyboard instantiateInitialViewController];
                 }
             } @catch (NSException *e) {
+                NSString *detailMessage = [[NSString alloc] initWithFormat:@"%@ \nDetail: %@", message, e.reason];
+                @throw [[NSException alloc] initWithName:@"NotFoundException" reason:detailMessage userInfo:nil];
+            }
+        }
+        
+        if(destinyViewController != nil && poi != nil)
+        {
+            @try {
+                [destinyViewController performSelector:NSSelectorFromString(@"selectedPoIString:") withObject:poi];
+            } @catch (NSException *e) {
+                message = [[NSString alloc] initWithFormat:@"selectedPoI not avalable"];
                 NSString *detailMessage = [[NSString alloc] initWithFormat:@"%@ \nDetail: %@", message, e.reason];
                 @throw [[NSException alloc] initWithName:@"NotFoundException" reason:detailMessage userInfo:nil];
             }
