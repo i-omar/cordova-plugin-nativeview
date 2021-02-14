@@ -261,7 +261,17 @@
             @try {
                 if ([[NSBundle mainBundle] pathForResource:viewControllerName ofType:@"nib"]) {
                     // Initialize with nib/xib
-                    destinyViewController = [[UIViewController alloc] initWithNibName:viewControllerName bundle:nil];
+                     // Initialize with nib/xib
+                    NSString *appName = [[NSBundle bundleWithIdentifier:@"BundleIdentifier"] objectForInfoDictionaryKey:(id)kCFBundleExecutableKey];
+
+                    NSString *string = [NSString stringWithFormat:@"%@.%@",appName,viewControllerName];
+
+
+                    Class viewController = NSClassFromString(string);
+                    id anInstance = [[viewController alloc]  initWithNibName:viewControllerName bundle:nil];
+                    destinyViewController = anInstance;
+                 
+                    //destinyViewController = [[UIViewController alloc] initWithNibName:viewControllerName bundle:nil];
                 } else {
                     // Initialize without nib/xib
                     Class viewController = NSClassFromString(viewControllerName);
