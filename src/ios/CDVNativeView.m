@@ -100,6 +100,39 @@
     
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
+- (void)addAppointmentNotification:(CDVInvokedUrlCommand*)command{
+    CDVPluginResult *pluginResult;
+    @try {
+        
+        NSMutableDictionary* config = [command.arguments objectAtIndex:0];
+        
+        if ([config isKindOfClass:[NSMutableDictionary class]]) {
+            
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        }else{
+            @throw [[NSException alloc] initWithName:@"ParamsTypeException" reason:@"The params of addAppointmentNotification() method needs be a json" userInfo:nil];
+        }
+       
+        
+    } @catch (NSException *e) {
+        NSLog(@"[%@]: %@", e.name, e.reason);
+        
+        typedef CDVCommandStatus (^CaseBlock)(void);
+        
+        CaseBlock c = self.resultExceptions[e.name];
+        
+        CDVCommandStatus exceptionType = c ? c() : CDVCommandStatus_ERROR;
+        NSDictionary* error = @{
+            @"success": @NO,
+            @"name": e.name,
+            @"message": e.reason
+        };
+        
+        pluginResult = [CDVPluginResult resultWithStatus:exceptionType messageAsDictionary:error];
+    }
+    
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
 
 - (void)showMarket:(CDVInvokedUrlCommand*)command {
     

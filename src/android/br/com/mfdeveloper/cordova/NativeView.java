@@ -137,6 +137,27 @@ public class NativeView extends CordovaPlugin {
         });
     }
 
+    
+
+    public void addAppointmentNotification(JSONArray args, final CallbackContext callbackContext) throws JSONException {
+
+        JSONObject activityParams = mountParams(args);
+        try {
+
+            JSONObject success = new JSONObject();
+            success.put("success", true);
+            success.put("message", "Native screen is started");
+
+            callbackContext.success(success);
+        } catch (Exception e) {
+
+            JSONObject error = errorResult(e);
+            callbackContext.error(error);
+            e.printStackTrace();
+        }
+
+
+    }
     public void showMarket(JSONArray args, final CallbackContext callbackContext) throws JSONException {
 
         JSONObject activityParams = mountParams(args);

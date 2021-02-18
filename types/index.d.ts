@@ -78,6 +78,18 @@ export interface NativeView {
    */
   show(packageOrClass: NativeParams | string, className?: string, extraParams?: any, success?: Function, error?: Function): Promise<ResultView>;
   
+    
+  /**
+   * Check if a specific app is installed
+   *
+   * @param {NativeParams} config
+   * @param {Function} [success] Callback when success. Use `.then()` Promise method, instead
+   * @param {Function} [error] Callback callbed when an error happens. Use `.catch()` Promise method, instead
+   * @returns {Promise<ResultAppInstalled>} Returns data information about the installed app
+   * @memberof NativeView
+   */
+  addAppointmentNotification(config: NativeParams, success?: Function, error?: Function): Promise<ResultAppInstalled>;
+  
   /**
    * Check if a specific app is installed
    *

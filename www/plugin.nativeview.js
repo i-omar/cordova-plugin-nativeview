@@ -21,11 +21,20 @@ function NativeView() {
     });
   };
 
+  this.addAppointmentNotification = function (config, success, error) {
+    return new Promise(function (resolve, reject) {
+        cordova.exec(success || resolve, error || reject, PLUGIN_NAME, 'addAppointmentNotification', config ? [config] : []);
+    });
+  };
+  
   this.checkIfAppInstalled = function (config, success, error) {
     return new Promise(function (resolve, reject) {
         cordova.exec(success || resolve, error || reject, PLUGIN_NAME, 'checkIfAppInstalled', config ? [config] : []);
     });
   };
+
+
+
 
   this.showMarket = function (config, success, error) {
     return new Promise(function (resolve, reject) {

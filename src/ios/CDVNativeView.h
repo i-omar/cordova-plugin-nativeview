@@ -21,6 +21,7 @@
 @property (strong, nonatomic) NSDictionary *resultExceptions;
 
 - (void)show:(CDVInvokedUrlCommand*)command;
+- (void)addAppointmentNotification:(CDVInvokedUrlCommand*)command;
 - (void)checkIfAppInstalled:(CDVInvokedUrlCommand*)command;
 - (void)showMarket:(CDVInvokedUrlCommand*)command;
 
