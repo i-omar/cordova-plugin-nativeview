@@ -260,35 +260,7 @@ public class NativeView extends CordovaPlugin {
     }
 
     public void getBuildVariant(JSONArray args, final CallbackContext callbackContext) {
-
-        if (args.length() > 0) {
-
-            try{
-
-                JSONObject params = args.getJSONObject(0);
-
-                if (params.has("catchError") && params.optBoolean("catchError", true)) {
-
-                    if (BuildConfig.FLAVOR == null || BuildConfig.FLAVOR.length() == 0) {
-
-                        JSONObject error = new JSONObject();
-                        error.put("success", false);
-                        error.put("message", "The FLAVOR is not defined. Verify your build.gradle 'productFlavors' config");
-
-                        callbackContext.error(error);
-                        return;
-                    }
-                }
-
-            }catch (JSONException e) {
-                JSONObject error = errorResult(e);
-
-                callbackContext.error(error);
-            }
-        }
-
-
-        callbackContext.success(BuildConfig.FLAVOR);
+        callbackContext.success("");
     }
 
     protected JSONObject mountParams(JSONArray args) throws JSONException {
