@@ -12,6 +12,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.google.gson.JsonObject;
+
 import org.apache.cordova.BuildConfig;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -29,11 +31,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import mngha.pp.health4u.penguine.Data.AppointmentsManager;
+import mngha.pp.health4u.penguine.TargetActivity;
+import mngha.pp.health4u.penguine.show.LoadingPOIActivity;
+
 /**
  * Start a native Activity. This plugin
  * use Java Reflection to decide which method
  * execute
- *
+ * <p>
  * Based and inspired by cordova plugin: com.lampa.startapp
  *
  * @author @mfdeveloper on 28/08/17
@@ -77,13 +83,13 @@ public class NativeView extends CordovaPlugin {
 
                 e.printStackTrace();
 
-            }catch (InvocationTargetException e) {
+            } catch (InvocationTargetException e) {
                 JSONObject error = errorResult(e);
                 callbackContext.error(error);
 
                 e.printStackTrace();
             }
-        }catch (NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
 
             String message = String.format("Method with name: %s was not found on: %s\n Reason: %s", action, getClass().getName(), e.getMessage());
 
@@ -120,6 +126,7 @@ public class NativeView extends CordovaPlugin {
                      *
                      * @see https://www.journaldev.com/10463/android-notification-pendingintent
                      */
+
                     cordova.getActivity().startActivity(intentToStart);
                     JSONObject success = new JSONObject();
                     success.put("success", true);
@@ -137,12 +144,13 @@ public class NativeView extends CordovaPlugin {
         });
     }
 
-    
 
     public void addAppointmentNotification(JSONArray args, final CallbackContext callbackContext) throws JSONException {
 
         JSONObject activityParams = mountParams(args);
         try {
+
+            AppointmentsManager.newInstance(cordova.getContext()).setupAppointments(activityParams.toString());
 
             JSONObject success = new JSONObject();
             success.put("success", true);
@@ -158,6 +166,7 @@ public class NativeView extends CordovaPlugin {
 
 
     }
+
     public void showMarket(JSONArray args, final CallbackContext callbackContext) throws JSONException {
 
         JSONObject activityParams = mountParams(args);
@@ -165,7 +174,7 @@ public class NativeView extends CordovaPlugin {
 
         if (activityParams.has("marketId")) {
             targetPackage = activityParams.getString("marketId");
-        }else{
+        } else {
 
             targetPackage = activityParams.has("package") ? activityParams.optString("package") : activityParams.optString("packageApp");
         }
@@ -211,12 +220,12 @@ public class NativeView extends CordovaPlugin {
 
                         callbackContext.success(result);
 
-                    }catch (Exception err) {
+                    } catch (Exception err) {
                         JSONObject error = errorResult(err);
                         callbackContext.error(error);
                         err.printStackTrace();
                     }
-                }catch (Exception e) {
+                } catch (Exception e) {
 
                     JSONObject error = errorResult(e);
                     callbackContext.error(error);
@@ -269,10 +278,15 @@ public class NativeView extends CordovaPlugin {
 
         if (args.opt(0) instanceof JSONObject) {
             activityParams = new JSONObject(args.getJSONObject(0).toString());
-        }else {
+        } else {
             activityParams = new JSONObject();
             activityParams.put("packageName", args.optString(0));
             activityParams.put("className", args.optString(1));
+            if (args.length() == 2) {
+                JSONObject jsonObject = (JSONObject) args.get(0);
+                String key = jsonObject.keys().next();
+                activityParams.put(key, jsonObject.get(key));
+            }
         }
 
         return activityParams;
@@ -294,6 +308,14 @@ public class NativeView extends CordovaPlugin {
             intent = intentFromClass(intent, activityParams, callbackContext);
 
             intent = intentFromComponent(intent, activityParams, callbackContext);
+
+            if (args.length() >= 1) {
+                JSONObject jsonObject = args.getJSONObject(0);
+                if (jsonObject.get("className").equals(LoadingPOIActivity.class.getSimpleName())) {
+                    intent.putExtra(TargetActivity.EXTRA_POI_ID, Integer.parseInt(jsonObject.get("poi_id").toString()));
+                    intent.putExtra(TargetActivity.EXTRA_IS_New, true); // New Navigation needs to Calculate
+                }
+            }
         }
 
         addFlags(intent, activityParams, callbackContext);
@@ -304,10 +326,10 @@ public class NativeView extends CordovaPlugin {
 
     protected Intent intentFromComponent(Intent intent, JSONObject activityParams, CallbackContext callbackContext) throws JSONException {
 
-        if(activityParams.has("component")) {
+        if (activityParams.has("component")) {
             JSONObject component = activityParams.getJSONObject("component");
 
-            if(component.has("packageApp") && component.has("className")) {
+            if (component.has("packageApp") && component.has("className")) {
                 if (!component.getString("className").startsWith(".")) {
                     component.put("className", component.getString("packageApp") + "." + component.getString("className"));
                 }
@@ -327,14 +349,14 @@ public class NativeView extends CordovaPlugin {
 
     protected Intent intentFromUri(Intent intent, JSONObject activityParams, CallbackContext callbackContext) throws JSONException {
 
-        if(activityParams.has("uri")) {
+        if (activityParams.has("uri")) {
 
             String action = Intent.ACTION_VIEW;
 
             if (activityParams.has("action")) {
-                try{
+                try {
                     action = (String) getIntentValue(activityParams.optString("action"));
-                }catch (Exception intentErr) {
+                } catch (Exception intentErr) {
                     JSONObject error = errorResult(intentErr);
                     callbackContext.error(error);
 
@@ -360,13 +382,13 @@ public class NativeView extends CordovaPlugin {
                 intent = new Intent(activityParams.optString("packageName") + "." + activityParams.getString("className"));
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-            }catch (Exception clsErr) {
+            } catch (Exception clsErr) {
                 JSONObject error = errorResult(clsErr);
 
                 callbackContext.error(error);
                 clsErr.printStackTrace();
             }
-        }else{
+        } else {
             JSONObject error = new JSONObject();
             error.put("message", "The params 'packageName' and 'className' is required");
             error.put("sucess", false);
@@ -389,18 +411,18 @@ public class NativeView extends CordovaPlugin {
         // Add default flags
         flags.put(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-        for(int i=0; i < flags.length(); i++) {
+        for (int i = 0; i < flags.length(); i++) {
             Integer flagValue;
-            try{
+            try {
 
                 if (flags.get(i) instanceof String) {
                     flagValue = (Integer) getIntentValue(flags.getString(i));
-                }else{
+                } else {
                     flagValue = flags.getInt(i);
                 }
 
                 intent.addFlags(flagValue.intValue());
-            }catch (Exception intentErr) {
+            } catch (Exception intentErr) {
                 JSONObject error = errorResult(intentErr);
                 callbackContext.error(error);
             }
@@ -416,7 +438,7 @@ public class NativeView extends CordovaPlugin {
 
             if (args.length() == 2 && args.opt(0) instanceof JSONObject) {
                 jsonExtra = args.optJSONObject(1);
-            }else{
+            } else {
 
                 jsonExtra = args.length() >= 3 ? args.getJSONObject(2) : activityParams.optJSONObject("params");
             }
@@ -431,15 +453,15 @@ public class NativeView extends CordovaPlugin {
                 String key = (String) keys.next();
                 Object value = jsonExtra.get(key);
 
-                if(value instanceof Integer) {
+                if (value instanceof Integer) {
                     intent.putExtra(key, jsonExtra.getInt(key));
                 }
 
-                if(value instanceof String) {
+                if (value instanceof String) {
                     intent.putExtra(key, jsonExtra.getString(key));
                 }
 
-                if(value instanceof Boolean) {
+                if (value instanceof Boolean) {
                     intent.putExtra(key, jsonExtra.getBoolean(key));
                 }
             }

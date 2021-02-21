@@ -295,8 +295,13 @@
         if (self.viewController.navigationController) {
             [self.viewController.navigationController pushViewController:destinyViewController animated:YES];
         } else {
-            UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:destinyViewController];
+            
+            UIViewController *rootViewController = self.viewController.view.window.rootViewController;
+            
+            UINavigationController *nav = [[UINavigationController alloc] init];
             self.viewController.view.window.rootViewController = nav;
+            [nav setViewControllers:@[rootViewController,destinyViewController]];
+           
         }
         
     } else {
@@ -359,8 +364,13 @@
         if (self.viewController.navigationController) {
             [self.viewController.navigationController pushViewController:destinyViewController animated:YES];
         } else {
-            UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:destinyViewController];
+            
+            UIViewController *rootViewController = self.viewController.view.window.rootViewController;
+            
+            UINavigationController *nav = [[UINavigationController alloc] init];
             self.viewController.view.window.rootViewController = nav;
+            [nav setViewControllers:@[rootViewController,destinyViewController]];
+       
         }
         
     } else {
