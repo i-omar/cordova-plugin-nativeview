@@ -1,25 +1,17 @@
 package br.com.mfdeveloper.cordova;
 
-import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
-import com.google.gson.JsonObject;
-
-import org.apache.cordova.BuildConfig;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
-import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import mngha.pp.health4u.penguine.Data.AppointmentsManager;
+import mngha.pp.health4u.penguine.MainActivity;
 import mngha.pp.health4u.penguine.TargetActivity;
 import mngha.pp.health4u.penguine.show.LoadingPOIActivity;
 
@@ -311,7 +304,14 @@ public class NativeView extends CordovaPlugin {
 
             if (args.length() >= 1) {
                 JSONObject jsonObject = args.getJSONObject(0);
-                if (jsonObject.get("className").equals(LoadingPOIActivity.class.getSimpleName())) {
+
+                String className = jsonObject.get("className").toString();
+                if (className.equals(LoadingPOIActivity.class.getSimpleName()) ||
+                        className.equals(MainActivity.class.getSimpleName())) {
+
+                    intent.putExtra(LoadingPOIActivity.EXTRA_LANGUAGE, jsonObject.get("lang").toString());
+                }
+                if (className.equals(LoadingPOIActivity.class.getSimpleName())) {
                     intent.putExtra(TargetActivity.EXTRA_POI_ID, Integer.parseInt(jsonObject.get("poi_id").toString()));
                     intent.putExtra(TargetActivity.EXTRA_IS_New, true); // New Navigation needs to Calculate
                 }
