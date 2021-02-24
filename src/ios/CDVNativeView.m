@@ -7,6 +7,7 @@
 
 #import "CDVNativeView.h"
 #import <UIKit/UIKit.h>
+#import <TestApp2-Swift.h>
 
 @interface CDVNativeView (hidden)
 
@@ -54,6 +55,7 @@
         NSString *storyboardName = nil;
         NSString *uri = nil;
         NSString *poi = nil;
+        NSString *lang = nil;
         NSMutableDictionary* config = [command.arguments objectAtIndex:0];
         
         if ([config isKindOfClass:[NSMutableDictionary class]]) {
@@ -62,8 +64,12 @@
             storyboardName = [config objectForKey:@"storyboardName"];
             uri = [config objectForKey:@"uri"];
             poi = [config objectForKey:@"poi"];
+            lang = [config objectForKey:@"lang"];
             
-
+            if(lang !=nil){
+                [[NSUserDefaults standardUserDefaults] setObject:@[lang] forKey:@"AppleLanguages"];
+                [[NSUserDefaults standardUserDefaults] synchronize];
+            }
         }else{
             @throw [[NSException alloc] initWithName:@"ParamsTypeException" reason:@"The params of show() method needs be a string or a json" userInfo:nil];
         }
@@ -107,7 +113,8 @@
         NSMutableDictionary* config = [command.arguments objectAtIndex:0];
         
         if ([config isKindOfClass:[NSMutableDictionary class]]) {
-            
+            NSArray* results = [NSArray arrayWithArray:config[@"result"]];
+            [[LocationManager shared] updateFencingAndPushDataWithDataArray:results];
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
         }else{
             @throw [[NSException alloc] initWithName:@"ParamsTypeException" reason:@"The params of addAppointmentNotification() method needs be a json" userInfo:nil];
@@ -283,9 +290,10 @@
 
             @try {
                 
-                [destinyViewController performSelector:NSSelectorFromString(@"selectedPoIString:") withObject:poi];
+                
+                [destinyViewController performSelector:NSSelectorFromString(@"navigateToPoiOnly:") withObject:poi];
             } @catch (NSException *e) {
-                message = [[NSString alloc] initWithFormat:@"selectedPoI not avalable"];
+                message = [[NSString alloc] initWithFormat:@"navigateToPoiOnly not avalable"];
                 NSString *detailMessage = [[NSString alloc] initWithFormat:@"%@ \nDetail: %@", message, e.reason];
                 @throw [[NSException alloc] initWithName:@"NotFoundException" reason:detailMessage userInfo:nil];
             }
@@ -352,9 +360,9 @@
         if(destinyViewController != nil && poi != nil)
         {
             @try {
-                [destinyViewController performSelector:NSSelectorFromString(@"selectedPoIString:") withObject:poi];
+                [destinyViewController performSelector:NSSelectorFromString(@"navigateToPoiOnly:") withObject:poi];
             } @catch (NSException *e) {
-                message = [[NSString alloc] initWithFormat:@"selectedPoI not avalable"];
+                message = [[NSString alloc] initWithFormat:@"navigateToPoiOnly not avalable"];
                 NSString *detailMessage = [[NSString alloc] initWithFormat:@"%@ \nDetail: %@", message, e.reason];
                 @throw [[NSException alloc] initWithName:@"NotFoundException" reason:detailMessage userInfo:nil];
             }
